@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="style.css" />
 
   <style>
-    /* ============= MESSAGE BOX ============= */
     .msg-box {
       max-width: 720px;
       margin: 20px auto;
@@ -48,7 +47,6 @@
       box-shadow: 0 0 18px #00eaff;
     }
 
-    /* ============= HEART FLOAT ============= */
     @keyframes floatHearts {
       from { transform: translateY(0) scale(1); opacity: 1; }
       to   { transform: translateY(-120px) scale(1.6); opacity: 0; }
@@ -61,7 +59,6 @@
       pointer-events: none;
     }
 
-    /* ============= SECRET FLOWER MODE ============= */
     @keyframes falling {
       from { transform: translateY(-10vh); opacity: 1; }
       to   { transform: translateY(110vh); opacity: 0; }
@@ -74,7 +71,6 @@
       animation: falling linear forwards;
     }
 
-    /* ============= MYSTERIOUS TEXT FLOAT ============= */
     .mysterious-text,
     .fog-text {
       position: fixed;
@@ -96,7 +92,6 @@
       100% { opacity: 0; transform: scale(.9); }
     }
 
-    /* =========== FOG EFFECT =========== */
     .fog {
       position: fixed;
       inset: 0;
@@ -119,7 +114,7 @@
 <body class="message-page">
 
   <!-- MUSIC -->
-  <audio id="bgm" loop>
+  <audio id="bgm" loop preload="auto">
     <source src="song4.mp3" type="audio/mpeg">
   </audio>
 
@@ -151,35 +146,39 @@
   </div>
 
 <script>
-/* ======================= MUSIC W/ GESTURE AUTOPLAY ======================= */
+/* ====================== MUSIC AUTOPLAY (GESTURE) ====================== */
 const bgm = document.getElementById("bgm");
 const playBtn = document.getElementById("playBtn");
 const pauseBtn = document.getElementById("pauseBtn");
+let unlocked = false;
 
-function tryPlayMusic() {
-  bgm.play().then(() => {
-    playBtn.style.display = "none";
-    pauseBtn.style.display = "inline-block";
-    document.removeEventListener("click", tryPlayMusic);
-    document.removeEventListener("scroll", tryPlayMusic);
-    document.removeEventListener("touchstart", tryPlayMusic);
-  }).catch(()=>{});
+function unlockMusic() {
+  if (!unlocked) {
+    bgm.play()
+      .then(() => {
+        unlocked = true;
+        playBtn.style.display = "none";
+        pauseBtn.style.display = "inline-block";
+      })
+      .catch(() => {
+        playBtn.style.display = "inline-block";
+      });
+  }
 }
 
-// activate gesture listeners
-document.addEventListener("click", tryPlayMusic);
-document.addEventListener("scroll", tryPlayMusic);
-document.addEventListener("touchstart", tryPlayMusic);
+// gesture triggers
+document.body.addEventListener("click", unlockMusic, { once:true });
+document.body.addEventListener("touchstart", unlockMusic, { once:true });
+document.body.addEventListener("scroll", unlockMusic, { once:true });
 
-// manual button control
-playBtn.onclick = () => tryPlayMusic();
+playBtn.onclick = () => unlockMusic();
 pauseBtn.onclick = () => {
   bgm.pause();
   pauseBtn.style.display = "none";
   playBtn.style.display = "inline-block";
 };
 
-/* ======================= BUTTON MESSAGES ======================= */
+/* ====================== BUTTON MESSAGES ====================== */
 const messageArea = document.getElementById("messageArea");
 const messages = {
   1: "Aku bersyukur bisa mengenalmu... kamu adalah hadiah yang Tuhan kirim untuk membuat hidupku lebih hangat 💙",
@@ -198,18 +197,14 @@ function spawnHearts() {
     const heart = document.createElement("div");
     heart.className = "heart";
     heart.innerHTML = "💙";
-    heart.style.left = (Math.random()*90 + 5) + "vw";
+    heart.style.left = (Math.random() * 90 + 5) + "vw";
     document.body.appendChild(heart);
     setTimeout(() => heart.remove(), 1500);
   }
 }
 
-/* ==========================================================
-   🔥 2-MINUTE EVENT — FOG + 1 MESSAGE
-========================================================== */
-setTimeout(triggerFogMystery, 120000);
-
-function triggerFogMystery() {
+/* ====================== EVENT 2 MINUTE (FOG + MESSAGE) ====================== */
+setTimeout(() => {
   const fog = document.createElement("div");
   fog.className = "fog";
   document.body.appendChild(fog);
@@ -220,7 +215,8 @@ function triggerFogMystery() {
   fogMsg.innerText = randomFogMessage();
   document.body.appendChild(fogMsg);
   setTimeout(() => fogMsg.remove(), 6000);
-}
+
+}, 120000);
 
 function randomFogMessage() {
   const arr = [
@@ -232,12 +228,8 @@ function randomFogMessage() {
   return arr[Math.floor(Math.random()*arr.length)];
 }
 
-/* ==========================================================
-   🔥 5-MINUTE EVENT — FLOWERS & MYSTERY LINES
-========================================================== */
-setTimeout(triggerSecretMode, 300000);
-
-function triggerSecretMode() {
+/* ====================== EVENT 5 MINUTE (FLOWERS + TEXT) ====================== */
+setTimeout(() => {
   setInterval(() => {
     const f = document.createElement("div");
     f.className = "flower";
@@ -248,15 +240,16 @@ function triggerSecretMode() {
     setTimeout(()=>f.remove(), 7000);
   }, 550);
 
-  let count = 0, max = 5;
+  let count = 0;
+  const max = 5;
   const interval = setInterval(() => {
     if(count >= max) return clearInterval(interval);
-    createMysteriousText();
+    createMysteryText();
     count++;
   }, 6500);
-}
+}, 300000);
 
-function createMysteriousText() {
+function createMysteryText() {
   const t = document.createElement("div");
   t.className = "mysterious-text";
   t.innerText = getMysteryLine();
