@@ -6,8 +6,8 @@
   <title>Happy Birthday — Surprise</title>
   <link rel="stylesheet" href="style.css" />
 
+  <!-- Corner branding aesthetic -->
   <style>
-    /* Text aesthetic pojok kiri */
     .corner-brand {
       position: fixed;
       top: 10px;
@@ -16,7 +16,6 @@
       font-family: 'Orbitron', sans-serif;
       font-size: 18px;
       color: #9cd6ff;
-      letter-spacing: 1px;
       text-shadow:
         0 0 6px #9cd6ff,
         0 0 14px #72d1ff,
@@ -25,31 +24,15 @@
       pointer-events: none;
       user-select: none;
     }
-
     @keyframes brandPulse {
-      0%,100% {
-        opacity: .92;
-        transform: scale(1);
-        text-shadow:
-          0 0 6px #9cd6ff,
-          0 0 14px #72d1ff,
-          0 0 22px #37baff;
-      }
-      50% {
-        opacity: 1;
-        transform: scale(1.07);
-        text-shadow:
-          0 0 10px #c3ecff,
-          0 0 22px #8cdfff,
-          0 0 36px #4ecafe;
-      }
+      0%,100% { opacity:.92; transform:scale(1); }
+      50% { opacity:1; transform:scale(1.07); }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- ☆ Corner Aesthetic Text -->
   <div class="corner-brand">chisa & rii</div>
 
   <!-- MUSIC -->
@@ -57,15 +40,13 @@
     <source src="song3.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- NAV -->
   <nav class="nav">
-    <a href="index.html">Home</a>
+    <a href="index.html" class="active">Home</a>
     <a href="gallery.html">Gallery</a>
     <a href="upload.html">Upload</a>
     <a href="message.html">Pesan</a>
   </nav>
 
-  <!-- STAR ANIMATION BG -->
   <div class="star-container">
     <div class="star" style="left:6%; animation-duration:6s;"></div>
     <div class="star" style="left:18%; animation-duration:7.2s; animation-delay:0.7s;"></div>
@@ -79,59 +60,44 @@
   <h1 class="neon-title">18 ✨</h1>
 
   <section style="text-align:center; margin-top: 18px;">
-    <p style="max-width:720px; margin: auto; font-size:18px; color:#cfeaff;">
+    <p style="max-width:720px; margin:auto; font-size:18px; color:#cfeaff;">
       Ini hadiah kecil dari aku — halaman penuh kenangan.  
-      Klik <b>Gallery</b> untuk lihat foto-foto kita, atau <b>Upload</b> kalau kamu mau tambahkan foto/video baru.
+      Klik <b>Gallery</b> untuk lihat momen kita, atau <b>Upload</b> untuk menambah foto/video 💙
     </p>
   </section>
 
-  <!-- AUDIO CONTROL -->
-  <div class="audio-control" aria-hidden="false">
+  <div class="audio-control">
     <button id="playBtn">Play Music</button>
     <button id="pauseBtn" style="display:none;">Pause</button>
   </div>
 
 <script>
-// ambil elemen
-const bgm = document.getElementById('bgm');
-const playBtn = document.getElementById('playBtn');
-const pauseBtn = document.getElementById('pauseBtn');
+/* =========== MUSIC AUTOGESTURE =========== */
+const bgm = document.getElementById("bgm");
+const playBtn = document.getElementById("playBtn");
+const pauseBtn = document.getElementById("pauseBtn");
 
-// volume pelan dulu biar smooth
-bgm.volume = 1;
-
-// fungsi untuk autoplay setelah gesture
-function playAfterGesture() {
+function tryPlay() {
   bgm.play().then(() => {
-    playBtn.style.display = 'none';
-    pauseBtn.style.display = 'inline-block';
-
-    // stop listening supaya ga trigger lagi
-    window.removeEventListener('click', playAfterGesture);
-    window.removeEventListener('scroll', playAfterGesture);
-    window.removeEventListener('touchstart', playAfterGesture);
+    playBtn.style.display="none";
+    pauseBtn.style.display="inline-block";
+    window.removeEventListener("click", tryPlay);
+    window.removeEventListener("scroll", tryPlay);
+    window.removeEventListener("touchstart", tryPlay);
   }).catch(()=>{});
 }
 
-// pas user berinteraksi sekali
-window.addEventListener('click', playAfterGesture);
-window.addEventListener('scroll', playAfterGesture);
-window.addEventListener('touchstart', playAfterGesture);
+window.addEventListener("click", tryPlay);
+window.addEventListener("scroll", tryPlay);
+window.addEventListener("touchstart", tryPlay);
 
-// tombol manual
-playBtn.onclick = async () => {
-  await bgm.play();
-  playBtn.style.display = 'none';
-  pauseBtn.style.display = 'inline-block';
-};
-
+playBtn.onclick = () => tryPlay();
 pauseBtn.onclick = () => {
   bgm.pause();
-  pauseBtn.style.display = 'none';
-  playBtn.style.display = 'inline-block';
+  pauseBtn.style.display="none";
+  playBtn.style.display="inline-block";
 };
 </script>
-
 
 </body>
 </html>
