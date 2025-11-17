@@ -8,10 +8,12 @@
 </head>
 <body>
 
-<audio id="bgm" loop>
+<!-- MUSIC -->
+<audio id="bgm" loop preload="auto">
   <source src="songg.mp3" type="audio/mpeg">
 </audio>
 
+<!-- NAVIGATION -->
 <nav class="nav">
   <a href="index.html">Home</a>
   <a href="gallery.html">Gallery</a>
@@ -19,6 +21,7 @@
   <a href="message.html">Pesan</a>
 </nav>
 
+<!-- BACKGROUND STAR ANIMATION -->
 <div class="star-container">
   <div class="star" style="left:6%; animation-duration:6s;"></div>
   <div class="star" style="left:18%; animation-duration:7.2s; animation-delay:0.7s;"></div>
@@ -31,13 +34,18 @@
 
 <h2 class="neon-title">Upload 💙</h2>
 
+<!-- UPLOAD UI -->
 <div class="upload-box">
   <input type="file" id="fileInput">
   <button id="uploadBtn">Upload</button>
   <p id="status"></p>
-  <div id="loader" style="display:none;color:#9cd6ff;">⏳ Mengupload...</div>
+  
+  <div id="loader" style="display:none;margin-top:10px;color:#9cd6ff;font-size:15px;">
+    ⏳ Mengupload...
+  </div>
 </div>
 
+<!-- AUDIO CONTROL -->
 <div class="audio-control">
   <button id="playBtn">Play Music</button>
   <button id="pauseBtn" style="display:none;">Pause</button>
@@ -46,51 +54,62 @@
 <script type="module">
 import { uploadPhoto } from "./supabase.js";
 
-/* ===== MUSIC ===== */
-const bgm=document.getElementById("bgm");
-const playBtn=document.getElementById("playBtn");
-const pauseBtn=document.getElementById("pauseBtn");
+/* ====================== MUSIC AUTOPLAY (GESTURE) ====================== */
+const bgm = document.getElementById("bgm");
+const playBtn = document.getElementById("playBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+let unlocked = false;
 
-function tryPlay(){
-  bgm.play().then(()=>{
-    playBtn.style.display="none";
-    pauseBtn.style.display="inline-block";
-    window.removeEventListener("click", tryPlay);
-    window.removeEventListener("scroll", tryPlay);
-    window.removeEventListener("touchstart", tryPlay);
-  }).catch(()=>{});
+function unlockMusic() {
+  if (!unlocked) {
+    bgm.play().then(() => {
+      unlocked = true;
+      playBtn.style.display = "none";
+      pauseBtn.style.display = "inline-block";
+    }).catch(() => {
+      playBtn.style.display = "inline-block";
+    });
+  }
 }
-window.addEventListener("click", tryPlay);
-window.addEventListener("scroll", tryPlay);
-window.addEventListener("touchstart", tryPlay);
 
-playBtn.onclick =()=>tryPlay();
-pauseBtn.onclick =()=>{ bgm.pause(); pauseBtn.style.display="none"; playBtn.style.display="inline-block";};
+// gesture triggers
+document.body.addEventListener("click", unlockMusic, { once:true });
+document.body.addEventListener("scroll", unlockMusic, { once:true });
+document.body.addEventListener("touchstart", unlockMusic, { once:true });
 
-/* ===== UPLOAD ===== */
-const fileInput=document.getElementById("fileInput");
-const uploadBtn=document.getElementById("uploadBtn");
-const statusMsg=document.getElementById("status");
-const loader=document.getElementById("loader");
+playBtn.onclick = () => unlockMusic();
+pauseBtn.onclick = () => {
+  bgm.pause();
+  pauseBtn.style.display = "none";
+  playBtn.style.display = "inline-block";
+};
 
-uploadBtn.onclick=async ()=>{
-  const file=fileInput.files[0];
-  if(!file){
-    statusMsg.textContent="Pilih file dulu 💙";
+/* ====================== UPLOAD HANDLING ====================== */
+const fileInput = document.getElementById("fileInput");
+const uploadBtn = document.getElementById("uploadBtn");
+const statusMsg = document.getElementById("status");
+const loader = document.getElementById("loader");
+
+uploadBtn.onclick = async () => {
+  const file = fileInput.files[0];
+
+  if (!file) {
+    statusMsg.textContent = "📂 Pilih file dulu 💙";
     return;
   }
 
-  loader.style.display="block";
-  statusMsg.textContent="";
+  loader.style.display = "block";
+  statusMsg.textContent = "";
 
-  try{
+  try {
     await uploadPhoto(file);
-    loader.style.display="none";
-    statusMsg.textContent="✨ Upload berhasil! Cek di Gallery 💙";
-  }catch(e){
-    loader.style.display="none";
-    statusMsg.textContent="❌ Upload gagal, cek console";
-    console.error(e);
+    loader.style.display = "none";
+    statusMsg.textContent = "✨ Berhasil upload! Cek di Gallery 💙";
+    fileInput.value = "";
+  } catch (err) {
+    loader.style.display = "none";
+    statusMsg.textContent = "❌ Upload gagal, cek console";
+    console.error(err);
   }
 };
 </script>
