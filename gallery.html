@@ -45,39 +45,34 @@
   <script type="module">
     import { subscribeToGallery } from "./supabase.js";
 
-    /* ========================
-       MUSIC CONTROL
-    =========================== */
+    /* ================= MUSIC AUTO-GESTURE ================= */
     const bgm = document.getElementById("bgm");
     const playBtn = document.getElementById("playBtn");
     const pauseBtn = document.getElementById("pauseBtn");
 
-    window.addEventListener("load", async () => {
-      try {
-        await bgm.play();
+    function tryPlay() {
+      bgm.play().then(() => {
         playBtn.style.display = "none";
         pauseBtn.style.display = "inline-block";
-      } catch {
-        playBtn.style.display = "inline-block";
-      }
-    });
 
-    playBtn.onclick = async () => {
-      await bgm.play();
-      playBtn.style.display="none";
-      pauseBtn.style.display="inline-block";
-    };
+        window.removeEventListener("click", tryPlay);
+        window.removeEventListener("scroll", tryPlay);
+        window.removeEventListener("touchstart", tryPlay);
+      }).catch(()=>{});
+    }
 
+    window.addEventListener("click", tryPlay);
+    window.addEventListener("scroll", tryPlay);
+    window.addEventListener("touchstart", tryPlay);
+
+    playBtn.onclick = () => tryPlay();
     pauseBtn.onclick = () => {
       bgm.pause();
       pauseBtn.style.display="none";
       playBtn.style.display="inline-block";
     };
 
-
-    /* ========================
-       RENDER GALLERY (IMG + VIDEO)
-    =========================== */
+    /* ================= GALLERY RENDER SUPPORT IMAGE + VIDEO ================= */
     const galleryEl = document.getElementById("gallery");
 
     function render(images) {
@@ -92,7 +87,6 @@
         const url = item.url.toLowerCase();
         let element;
 
-        // Detect video type
         if (url.endsWith(".mp4") || url.endsWith(".webm") || url.endsWith(".mov")) {
           element = document.createElement("video");
           element.src = item.url;
@@ -100,37 +94,27 @@
           element.playsInline = true;
           element.loop = true;
           element.classList.add("video-post");
-          element.style.width = "260px";
-          element.style.borderRadius = "16px";
-        } 
-        // Otherwise treat as image
-        else {
+        } else {
           element = document.createElement("img");
           element.src = item.url;
           element.alt = item.name || "moment";
         }
-
         galleryEl.appendChild(element);
       });
 
       enableSmartVideoAutoplay();
     }
 
-
-    /* ========================
-       TIKTOK STYLE AUTOPLAY
-    =========================== */
     function enableSmartVideoAutoplay() {
       const videos = document.querySelectorAll(".video-post");
 
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) entry.target.play();
-          else entry.target.pause();
+      const observer = new IntersectionObserver((entries)=>{
+        entries.forEach(entry=>{
+          entry.isIntersecting ? entry.target.play() : entry.target.pause();
         });
-      }, { threshold: 0.6 });
+      },{threshold:0.6});
 
-      videos.forEach(v => observer.observe(v));
+      videos.forEach(v=>observer.observe(v));
     }
 
     subscribeToGallery(render);
