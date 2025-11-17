@@ -9,7 +9,7 @@
 <body>
 
   <!-- MUSIC -->
-  <audio id="bgm" loop>
+  <audio id="bgm" loop preload="auto">
     <source src="song2.mp3" type="audio/mpeg">
   </audio>
 
@@ -21,7 +21,7 @@
     <a href="message.html">Pesan</a>
   </nav>
 
-  <!-- Animasi stars -->
+  <!-- STAR ANIMATION -->
   <div class="star-container">
     <div class="star" style="left:8%;animation-duration:6s;"></div>
     <div class="star" style="left:22%;animation-duration:7s;animation-delay:.5s;"></div>
@@ -45,45 +45,50 @@
   <script type="module">
     import { subscribeToGallery } from "./supabase.js";
 
-    /* ================= MUSIC AUTO-GESTURE ================= */
+    /* ====================== MUSIC AUTOPLAY WITH GESTURE ====================== */
     const bgm = document.getElementById("bgm");
     const playBtn = document.getElementById("playBtn");
     const pauseBtn = document.getElementById("pauseBtn");
+    let unlocked = false;
 
-    function tryPlay() {
-      bgm.play().then(() => {
-        playBtn.style.display = "none";
-        pauseBtn.style.display = "inline-block";
-
-        window.removeEventListener("click", tryPlay);
-        window.removeEventListener("scroll", tryPlay);
-        window.removeEventListener("touchstart", tryPlay);
-      }).catch(()=>{});
+    function unlockAudio() {
+      if (!unlocked) {
+        bgm.play()
+          .then(() => {
+            unlocked = true;
+            playBtn.style.display = "none";
+            pauseBtn.style.display = "inline-block";
+          })
+          .catch(() => {
+            playBtn.style.display = "inline-block";
+          });
+      }
     }
 
-    window.addEventListener("click", tryPlay);
-    window.addEventListener("scroll", tryPlay);
-    window.addEventListener("touchstart", tryPlay);
+    // gesture listeners for Android + iOS autoplay compliance
+    document.body.addEventListener("touchstart", unlockAudio, { once: true });
+    document.body.addEventListener("click", unlockAudio, { once: true });
+    document.body.addEventListener("scroll", unlockAudio, { once: true });
 
-    playBtn.onclick = () => tryPlay();
+    playBtn.onclick = () => unlockAudio();
     pauseBtn.onclick = () => {
       bgm.pause();
-      pauseBtn.style.display="none";
-      playBtn.style.display="inline-block";
+      pauseBtn.style.display = "none";
+      playBtn.style.display = "inline-block";
     };
 
-    /* ================= GALLERY RENDER SUPPORT IMAGE + VIDEO ================= */
+    /* ====================== GALLERY RENDER IMAGE + VIDEO ====================== */
     const galleryEl = document.getElementById("gallery");
 
-    function render(images) {
+    function render(items) {
       galleryEl.innerHTML = "";
 
-      if (!images?.length) {
+      if (!items?.length) {
         galleryEl.innerHTML = `<p style="color:#9cd6ff;text-align:center;margin-top:20px">Belum ada foto/video — upload dulu 💙</p>`;
         return;
       }
 
-      images.forEach(item => {
+      items.forEach(item => {
         const url = item.url.toLowerCase();
         let element;
 
@@ -91,30 +96,33 @@
           element = document.createElement("video");
           element.src = item.url;
           element.muted = true;
-          element.playsInline = true;
           element.loop = true;
+          element.playsInline = true;
           element.classList.add("video-post");
         } else {
           element = document.createElement("img");
           element.src = item.url;
-          element.alt = item.name || "moment";
+          element.alt = item.name || "memory";
         }
+
         galleryEl.appendChild(element);
       });
 
-      enableSmartVideoAutoplay();
+      enableAutoPlayScrollVideo();
     }
 
-    function enableSmartVideoAutoplay() {
+    /* ====================== TIKTOK SMART AUTOPLAY ====================== */
+    function enableAutoPlayScrollVideo() {
       const videos = document.querySelectorAll(".video-post");
 
-      const observer = new IntersectionObserver((entries)=>{
-        entries.forEach(entry=>{
-          entry.isIntersecting ? entry.target.play() : entry.target.pause();
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) entry.target.play();
+          else entry.target.pause();
         });
-      },{threshold:0.6});
+      }, { threshold: 0.6 });
 
-      videos.forEach(v=>observer.observe(v));
+      videos.forEach(v => observer.observe(v));
     }
 
     subscribeToGallery(render);
