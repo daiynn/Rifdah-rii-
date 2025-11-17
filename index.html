@@ -53,7 +53,7 @@
   <div class="corner-brand">chisa & rii</div>
 
   <!-- MUSIC -->
-  <audio id="bgm" loop>
+  <audio id="bgm" loop preload="auto">
     <source src="song3.mp3" type="audio/mpeg">
   </audio>
 
@@ -92,29 +92,29 @@
   </div>
 
   <script>
-    const bgm = document.getElementById('bgm');
-    const playBtn = document.getElementById('playBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
+    const bgm = document.getElementById("bgm");
+    const playBtn = document.getElementById("playBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
 
     let unlocked = false;
 
+    // Unlock on first gesture (required by Android & iOS policy)
     function unlockAudio() {
       if (!unlocked) {
-        bgm.play()
-          .then(() => {
-            unlocked = true;
-            playBtn.style.display = "none";
-            pauseBtn.style.display = "inline-block";
-          })
-          .catch(() => {
-            playBtn.style.display = "inline-block";
-          });
+        bgm.play().then(() => {
+          unlocked = true;
+          playBtn.style.display = "none";
+          pauseBtn.style.display = "inline-block";
+        }).catch(() => {
+          playBtn.style.display = "inline-block";
+        });
       }
     }
 
-    // detect first touch / click to unlock audio autoplay
+    // Gesture listeners (sangat penting)
     document.body.addEventListener("touchstart", unlockAudio, { once: true });
     document.body.addEventListener("click", unlockAudio, { once: true });
+    document.body.addEventListener("scroll", unlockAudio, { once: true });
 
     playBtn.onclick = async () => {
       await bgm.play();
